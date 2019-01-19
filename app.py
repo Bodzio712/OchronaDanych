@@ -1,14 +1,23 @@
-from flask import Flask
-from flask import render_template
-from flask import send_from_directory
+# -*- coding: utf-8 -*-
+from flask import *
+from sqlalchemy import *
+from peewee import *
+from passlib.hash import pbkdf2_sha256
+from models.models import *
+
+import werkzeug
+import os
+import uuid
+import hashlib
+import json
 
 import sqlite3
 
 app = Flask(__name__)
-
+app.secret_key = b'0f\x00#3ZR$1\x18:\x1b\xa3\xe6\xf2\x0fy\xf1\x82\xef\x84P\xe7\xe0'
 
 # Otwieranie bazy danych
-con = sqlite3.connect('database.db')
+conn = sqlite3.connect('database.db')
 
 # Strona główna
 @app.route('/')
@@ -34,8 +43,90 @@ def home():
     return render_template('home.html')
 
 
+# Formularz rejestracji
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+
+# Sprawdzanie czy użytkownij jest zalogowany
+@app.route('/isLogged', methods=['POST', 'GET'])
+def is_logged():
+    data = {}
+    if 'username' not in session:
+        data['is_logged'] = 'false'
+    else:
+        data['is_logged'] = 'true'
+    json_data = json.dumps(data)
+    return jsonify(json_data)
+
+# Wylogowywanie
+@app.route('/logout', methods=['POST', 'GET'])
+def logout():
+    session.pop('username', None)
+    return redirect('/login')
+
+
+# Logowanie użytkownika
+@app.route('/loginUser', methods=['POST', 'GET'])
+def login_user():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('SELECT username, password FROM user')
+        data = cur.fetchall()
+
+        for row in data:
+            if row[0] == username and match_password_to_databese(password, row[1]):
+                session['username'] = username
+                return redirect('/')
+        return render_template("login.html", messege="Nie ma takiego użytkownika lub hasło niepoprawne")
+
+
+# Metoda rejestrująca użytkownika
+@app.route('/registerUser', methods=['GET', 'POST'])
+def register_new_user():
+    if request.method == 'POST':
+        username = request.form['username']
+        passward = request.form['password']
+        reapeated_password = request.form['rpassword']
+
+        # Jeśli hasła są takie same
+        if passward == reapeated_password:
+            # TODO: Dorobić weryfikowanie czy użytkownika nie ma w bazie
+            con = engine.connect()
+            try:
+                user = UserModel()
+                # Dodaj uzytwkonika do bazy
+                user.register_user(user.find_max_id()+1, username, hash_password(passward))
+
+                # Przekieruj do logowania
+                return redirect('/login')
+            except Exception as e:
+                con.close()
+        # Jeśli hasła nie są takie same
+        else:
+            return "Nieprawidłowe hasło" # TODO: Dorobić żeby wyświetlało się ładnie na stronie
+
+
+# Hashowanie hasła
+def hash_password(password):
+    salt = uuid.uuid4().hex
+    return hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
+
+
+# Odhashowywanie hasła
+def match_password_to_databese(password, hashed_password):
+    password_hashed, salt = hashed_password.split(':')
+    return password_hashed == hashlib.sha256(salt.encode() + password.encode()).hexdigest()
+
+
+# Tworzenie tabeli uzytwkoników, jeśli nie została utworzona
 def create_table_if_needed():
-    con.execute('''CREATE TABLE IF NOT EXISTS user
+    conn.execute('''CREATE TABLE IF NOT EXISTS user
     (id INTEGER PRIMARY KEY,
     username TEXT,
     password TEXT
@@ -46,4 +137,12 @@ def create_table_if_needed():
 create_table_if_needed()
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug="True", port='5000')
+    '''app.config.update(
+        SESSION_COOKIE_SECURE=True,
+        SESSION_COOKIE_HTTPONLY=True,
+    )'''
+
+# pip install passlib
+# pip install sqlalchemy
+# pip install peewee

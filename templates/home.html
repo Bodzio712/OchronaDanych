@@ -1,10 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Strona użytkownika</title>
+    <title>Panel użytkownika</title>
+    <link rel="stylesheet" href={{ url_for('static', filename='styles/style.css') }} />
+    <link rel="stylesheet" href={{ url_for('static', filename='styles/bootstrap.css') }} />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+    <link rel="icon" href="icon.png" />
 </head>
 <body>
-
+    <nav class="navbar navbar-expand navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">
+            <img src="icon.png">
+        </a>
+        <ul class="navbar-nav">
+            <li class="nav-item navbar-dark">
+                <a class="nav-link" href="/">Strona główna</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item navbar-dark">
+                <a class="nav-link" href="/home">Panel użytkownika</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item navbar-dark" id="log">
+            </li>
+        </ul>
+    </nav>
 </body>
 </html>
