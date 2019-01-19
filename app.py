@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
 from flask import *
-from sqlalchemy import *
-from peewee import *
-from passlib.hash import pbkdf2_sha256
 from models.models import *
 
-import werkzeug
-import os
 import uuid
 import hashlib
 import json
-
 import sqlite3
 
 app = Flask(__name__)
@@ -40,7 +34,10 @@ def icon():
 # Panel użytwkonika
 @app.route('/home')
 def home():
-    return render_template('home.html')
+    if is_now_logged() == true:
+        return render_template('home.html')
+    else:
+        return redirect('/login')
 
 
 # Formularz rejestracji
@@ -53,12 +50,14 @@ def register():
 @app.route('/isLogged', methods=['POST', 'GET'])
 def is_logged():
     data = {}
-    if 'username' not in session:
+    if is_now_logged() == false:
         data['is_logged'] = 'false'
     else:
         data['is_logged'] = 'true'
+        data['username'] = session['username']
     json_data = json.dumps(data)
     return jsonify(json_data)
+
 
 # Wylogowywanie
 @app.route('/logout', methods=['POST', 'GET'])
@@ -112,6 +111,14 @@ def register_new_user():
             return "Nieprawidłowe hasło" # TODO: Dorobić żeby wyświetlało się ładnie na stronie
 
 
+# Sprawdzanie czy użytkownik jest zalogowany
+def is_now_logged():
+    if 'username' not in session:
+        return false
+    else:
+        return true
+
+
 # Hashowanie hasła
 def hash_password(password):
     salt = uuid.uuid4().hex
@@ -131,6 +138,21 @@ def create_table_if_needed():
     username TEXT,
     password TEXT
     )'''
+    )
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS note
+        (id INTEGER PRIMARY KEY,
+        owner TEXT,
+        note TEXT,
+        is_public BOOL
+        )'''
+    )
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS access
+            (id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            note_id INTEGER
+            )'''
     )
 
 

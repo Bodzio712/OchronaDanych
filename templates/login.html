@@ -12,7 +12,7 @@
     <link rel="icon" href="icon.png" />
 </head>
 <body>
-    <nav class="navbar navbar-expand navbar-dark bg-dark">
+    <nav class="navbar navbar-expand navbar-dark bg-dark" id="navbar">
         <a class="navbar-brand" href="/">
             <img src="icon.png">
         </a>
@@ -32,11 +32,13 @@
         </ul>
     </nav>
 
-    {% if messege %}
-    <div class="alert alert-warning" id="alert"><strong>Nie udało sie zalogować:</strong> {{ messege }}</div>
-    {% endif %}
-
     <form action="/loginUser" method="POST" class="jumbotron">
+        {% if messege %}
+        <div class="alert alert-warning">
+            <strong>Nie udało sie zalogować:</strong> {{ messege }}
+        </div>
+        {% endif %}
+
         <div class="form-group">
             <label for="username">Login:</label>
             <input type="text" class="form-control" name="username" placeholder="Wpisz nazwę uzytkownika">

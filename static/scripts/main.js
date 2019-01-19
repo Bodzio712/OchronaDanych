@@ -10,17 +10,24 @@ window.onload = function() {
         contentType:"application/json",
         success: function(response) {
             var $nv = $('#log');
+            var $navbar = $('#navbar');
             var data = JSON.parse(response);
-            for(i in data) {
-                var is_logged = data[i];
+
+                var is_logged = data["is_logged"];
+                var username = data["username"];
                 if(is_logged == "false"){
-                    $nv.append('<a class="nav-link" href="/login">Zaloguj</a>\n')
+                    $nv.append('<a class="nav-link" href="/login">Zaloguj</a>')
                 }
                 else {
                     $nv.append('<a class="nav-link" href="/logout">Wyloguj</a>\n')
+                    $navbar.append('<ul class="navbar-nav ml-auto">' +
+                        '            <li class="nav-item navbar-dark">' +
+                        '            <a class="nav-link" href="#">Zalogowany jako: ' + username + '</a>' +
+                        '            </li>' +
+                        '        </ul>')
                 }
             }
-        }
+
         })
     }
 

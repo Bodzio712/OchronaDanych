@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-import logging
-import sqlite3
-from sqlalchemy.orm import *
-import os
-import werkzeug
 from sqlalchemy import *
-from sqlalchemy.ext.automap import *
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql import *
 
@@ -18,6 +12,8 @@ con = engine.connect()
 
 try:
     user = metadata.tables['user']
+    note = metadata.tables['note']
+    access = metadata.tables['access']
 except Exception as e:
     print("Nie udało się załadować tabeli")
 con.close()
@@ -46,6 +42,23 @@ class UserModel():
         try:
             con = engine.connect()
             insert = user.insert().values(id=id, username=username, password=hashed_password)
+            con.execute(insert)
+            con.close()
+        except Exception as e:
+            con.close()
+
+
+class NoteModel():
+    def get_note(self):
+        con = engine.connect()
+        note_full = con.execute(select([note]).fechall())
+        con.close()
+        return note_full
+
+    def add_note(self, id, note, owner, is_public):
+        try:
+            con = engine.connect()
+            insert = user.insert().values(id=id, note=note, owner=owner, is_public=is_public)
             con.execute(insert)
             con.close()
         except Exception as e:
