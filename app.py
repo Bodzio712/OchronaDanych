@@ -13,9 +13,12 @@ app.secret_key = b'0f\x00#3ZR$1\x18:\x1b\xa3\xe6\xf2\x0fy\xf1\x82\xef\x84P\xe7\x
 # Otwieranie bazy danych
 conn = sqlite3.connect('database.db')
 
+
 # Strona główna
 @app.route('/')
 def index():
+    if is_now_logged() == true:
+        return render_template('index.html', logged=session['username'])
     return render_template('index.html')
 
 
@@ -35,7 +38,7 @@ def icon():
 @app.route('/home')
 def home():
     if is_now_logged() == true:
-        return render_template('home.html')
+        return render_template('home.html', login=session['username'])
     else:
         return redirect('/login')
 

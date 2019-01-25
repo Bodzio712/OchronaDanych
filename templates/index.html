@@ -31,5 +31,36 @@
             </li>
         </ul>
     </nav>
+
+    {% if logged %}
+    <br>
+    <!-- TODO: Tu opjonalne dodawanie postu-->
+    <div class="jumbotron">
+        <h1>Dodawanie notatki</h1>
+    <form action="/addNote" method="POST">
+        {% if messege %}
+        <div class="alert alert-warning">
+            <strong>Wystąpił błąd: </strong> {{ messege }}
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="note">Notatka:</label>
+            <textarea class="form-control" name="note" id="note" rows="5" placeholder="Wpisz treść notatki"></textarea>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="isPublic" name="isPublic" value="public">
+            <label class="form-check-label" for="isPublic">Publiczny</label>
+        </div>
+        <input type="submit" class="btn btn-info" value="Dodaj">
+    </form>
+    </div>
+    {% endif %}
+
+    <br>
+    <!-- TODO: Tu wyświetlanie postów -->
+    <div class="jumbotron" id="notes">
+        <h1>Widoczne notatki</h1>
+    </div>
 </body>
 </html>

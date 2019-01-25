@@ -31,5 +31,33 @@
             </li>
         </ul>
     </nav>
+    <br>
+    <div class="jumbotron">
+        <h1>Panel użytkownika {{ login }}</h1>
+        <div class="jumbotron">
+            <h2>Zmień hasło</h2>
+            <form action="/changePassword" method="POST" class="jumbotron">
+            {% if messege %}
+            <div class="alert alert-warning">
+                <strong>Błąd:</strong> {{ messege }}
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="currentPassword">Obecne hasło:</label>
+                <input type="password" class="form-control" name="currentPassword" placeholder="Wpisz obecne hasło">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">Nowe hasło:</label>
+                <input type="password" class="form-control" name="newPassword" placeholder="Wpisz nowe hasło">
+            </div>
+            <div class="form-group">
+                <label for="cNewPassword">Powtórz nowe hasło:</label>
+                <input type="password" class="form-control" name="cNewPassword" placeholder="Powtórz nowe hasło">
+            </div>
+            <input type="submit" class="btn btn-info" value="Wyślij">
+        </form>
+        </div>
+    </div>
 </body>
 </html>
