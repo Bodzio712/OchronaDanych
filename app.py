@@ -6,20 +6,74 @@ import uuid
 import hashlib
 import json
 import sqlite3
+import time
 
 app = Flask(__name__)
+# Secret key jest potrzebny aby skorzystać z mechanizmu sesji w Flask. Sesja automatycznie wygasa po zamknięciu
 app.secret_key = b'0f\x00#3ZR$1\x18:\x1b\xa3\xe6\xf2\x0fy\xf1\x82\xef\x84P\xe7\xe0'
 
 # Otwieranie bazy danych
 conn = sqlite3.connect('database.db')
 
 
+# Tworzenie tabeli uzytwkoników, jeśli nie została utworzona
+def create_table_if_needed():
+    conn = sqlite3.connect('database.db')
+    conn.execute('''CREATE TABLE IF NOT EXISTS user
+    (id INTEGER PRIMARY KEY,
+    username TEXT,
+    password TEXT
+    )'''
+    )
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS note
+        (id INTEGER PRIMARY KEY,
+        owner TEXT,
+        note TEXT,
+        is_public TEXT
+        )'''
+    )
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS access
+            (id INTEGER PRIMARY KEY,
+            username INTEGER,
+            note_id INTEGER
+            )'''
+    )
+    conn.close()
+    conn = sqlite3.connect('database.db')
+
+
+create_table_if_needed()
+
+
 # Strona główna
 @app.route('/')
 def index():
     if is_now_logged() == true:
-        return render_template('index.html', logged=session['username'])
-    return render_template('index.html')
+        try:
+            note = NoteModel()
+            # Pobierz notatki publiczne
+            notes = note.get_all_note()
+            # Pobierz notatki prywatne
+            x = note.get_priavte_note(session['username'])
+            if x != null:
+                notes += x
+            # Pobierz notatki udostępnione
+            x = note.get_shared(session['username'])
+            if x!= null:
+                notes += x
+        except Exception as e:
+            notes = null
+        return render_template('index.html', logged=session['username'], notes=notes)
+
+    try:
+        note = NoteModel()
+        notes = note.get_all_note()
+    except:
+        notes = null
+
+    return render_template('index.html', notes=notes)
 
 
 # Logowanie
@@ -111,7 +165,64 @@ def register_new_user():
                 con.close()
         # Jeśli hasła nie są takie same
         else:
-            return "Nieprawidłowe hasło" # TODO: Dorobić żeby wyświetlało się ładnie na stronie
+            return "Nieprawidłowe hasło"  # TODO: Dorobić żeby wyświetlało się ładnie na stronie
+
+
+# Dodawanie notatki
+@app.route('/addNote', methods=['POST'])
+def add_note():
+    notes = request.form['note']
+    access_username = request.form['visibility']
+    try:
+        public = request.form['isPublic']
+    except:
+        public = null
+
+    if public == 'public':
+        public = 'true'
+    else:
+        public = 'false'
+
+    con = engine.connect()
+
+    try:
+        note = NoteModel()
+        access = AccessModel()
+        id_access = access.find_max_id() + 1
+        id_note = note.find_max_id() + 1
+        # Dodaj uzytwkonika do bazy
+        note.add_note(id_note, notes, session['username'], public)
+        # Dodaj dostęp gościnny do bazy
+        access.add_access(id_access, access_username, id_note)
+    except:
+        con.close()
+
+    return redirect('/')
+
+
+# Zmiana hasła
+@app.route('/changePassword', methods=['POST'])
+def change_password():
+    current_password = request.form['currentPassword']
+    new_password = request.form['newPassword']
+    copy_new_password = request.form['cNewPassword']
+
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
+    cur.execute("SELECT username, password FROM user WHERE username = '" + session['username'] +"'")
+    data = cur.fetchall()
+    con.close()
+
+    for x in data:
+        hash = x[1]
+
+    if new_password == copy_new_password and match_password_to_databese(current_password, hash) == True:
+        hash = hash_password(new_password)
+        user = UserModel()
+        user.update_password(session['username'], hash)
+        return redirect('/home')
+
+    return redirect('home')
 
 
 # Sprawdzanie czy użytkownik jest zalogowany
@@ -128,45 +239,20 @@ def hash_password(password):
     return hashlib.sha256(salt.encode() + password.encode()).hexdigest() + ':' + salt
 
 
-# Odhashowywanie hasła
+# Porówanywanie hasła do zahashowanego hasła
 def match_password_to_databese(password, hashed_password):
+    # Opóźnienie w czasie weryfiacji hasła w celu wydłużenia ataków
+    time.sleep(1)
     password_hashed, salt = hashed_password.split(':')
     return password_hashed == hashlib.sha256(salt.encode() + password.encode()).hexdigest()
 
 
-# Tworzenie tabeli uzytwkoników, jeśli nie została utworzona
-def create_table_if_needed():
-    conn.execute('''CREATE TABLE IF NOT EXISTS user
-    (id INTEGER PRIMARY KEY,
-    username TEXT,
-    password TEXT
-    )'''
-    )
-
-    conn.execute('''CREATE TABLE IF NOT EXISTS note
-        (id INTEGER PRIMARY KEY,
-        owner TEXT,
-        note TEXT,
-        is_public BOOL
-        )'''
-    )
-
-    conn.execute('''CREATE TABLE IF NOT EXISTS access
-            (id INTEGER PRIMARY KEY,
-            user_id INTEGER,
-            note_id INTEGER
-            )'''
-    )
-
-
-create_table_if_needed()
-
 if __name__ == '__main__':
     app.run(debug="True", port='5000')
-    '''app.config.update(
+    app.config.update(
         SESSION_COOKIE_SECURE=True,
         SESSION_COOKIE_HTTPONLY=True,
-    )'''
+    )
 
 # pip install passlib
 # pip install sqlalchemy
