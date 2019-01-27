@@ -12,3 +12,4 @@ Aplikacje:
 
 Aplikację uruchamia się poleceniem:
 python3 app.py
+(do celów produkcyjnych należy skorzystać z uwsgi)
