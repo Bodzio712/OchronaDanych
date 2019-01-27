@@ -5,6 +5,7 @@ Do uruchomienia programy potrzebne są pakiety:
 - peewee (pip install peewee)
 - sqlalchemy (pip install sqlalchemy)
 - passlib (pip install passlib)
+- pyopenssl (pip install pyopenssl)
 
 Aplikacje:
 - SQLite3 (sudo apt install sqlite3)

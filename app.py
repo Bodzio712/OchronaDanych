@@ -248,7 +248,7 @@ def match_password_to_databese(password, hashed_password):
 
 
 if __name__ == '__main__':
-    app.run(debug="True", port='5000')
+    app.run(debug="True", port='5000', ssl_context='adhoc')
     app.config.update(
         SESSION_COOKIE_SECURE=True,
         SESSION_COOKIE_HTTPONLY=True,
