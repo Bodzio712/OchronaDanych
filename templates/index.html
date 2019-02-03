@@ -45,7 +45,7 @@
 
     {% if logged %}
     <br>
-    <!-- TODO: Tu opjonalne dodawanie postu-->
+    <!-- Dodawanie postu-->
     <div class="jumbotron">
         <h1>Dodawanie notatki</h1>
     <form action="/addNote" method="POST">
@@ -74,7 +74,7 @@
     {% endif %}
 
     <br>
-    <!-- TODO: Tu wyświetlanie postów -->
+    <!-- Eyświetlanie postów -->
     <div class="jumbotron" id="notes">
         <h1>Widoczne notatki</h1>
         {% for note in notes %}

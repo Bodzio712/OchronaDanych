@@ -26,6 +26,13 @@ class UserModel():
         con.close()
         return user_full
 
+    def check_if_user_exist(self, username):
+        con = engine.connect()
+        data = con.execute("SELECT EXISTS(SELECT 1 FROM user WHERE username = :username)", {"username": username}).scalar()
+        con.close()
+        return data
+
+
     def find_max_id(self):
         try:
             con = engine.connect()
@@ -79,7 +86,7 @@ class NoteModel():
     def get_priavte_note(self, username):
         con = engine.connect()
         try:
-            note_full = con.execute("SELECT * FROM note WHERE is_public = 'false' AND owner = '" + username +"'").fetchall()
+            note_full = con.execute("SELECT * FROM note WHERE is_public = 'false' AND owner = :username ", {'username': username}).fetchall()
         except Exception as e:
             note_full = null
         con.close()
@@ -91,7 +98,7 @@ class NoteModel():
             note_full = con.execute("SELECT note.id, note.owner, note.note, note.is_public "
                                     + "FROM note "
                                     + "INNER JOIN access ON access.note_id = note.id "
-                                    + "WHERE access.username = '" + username + "' AND note.is_public != 'true'").fetchall()
+                                    + "WHERE access.username = :username AND note.is_public != 'true'", {'username': username}).fetchall()
         except Exception as e:
             note_full = null
         con.close()

@@ -152,8 +152,20 @@ def register_new_user():
 
         # Jeśli hasła są takie same
         if passward == reapeated_password:
-            # TODO: Dorobić weryfikowanie czy użytkownika nie ma w bazie
             con = engine.connect()
+            try:
+                user = UserModel()
+                data = user.check_if_user_exist(username)
+                # Sprawdzanie czy użytwkonik już istnieje w bazie
+                if data == 1:
+                    return "Użytkownik już isnieje"
+            except Exception as e:
+                con.close()
+                return "Błąd w czasie działania aplikacji"
+
+            if len(passward) < 8:
+                return "Za krótkie hasło"
+
             try:
                 user = UserModel()
                 # Dodaj uzytwkonika do bazy
@@ -165,7 +177,7 @@ def register_new_user():
                 con.close()
         # Jeśli hasła nie są takie same
         else:
-            return "Nieprawidłowe hasło"  # TODO: Dorobić żeby wyświetlało się ładnie na stronie
+            return "Nieprawidłowe hasło"
 
 
 # Dodawanie notatki
@@ -209,7 +221,7 @@ def change_password():
 
     con = sqlite3.connect('database.db')
     cur = con.cursor()
-    cur.execute("SELECT username, password FROM user WHERE username = '" + session['username'] +"'")
+    cur.execute("SELECT username, password FROM user WHERE username = :username", {'username': session['username']})
     data = cur.fetchall()
     con.close()
 
